@@ -83,3 +83,42 @@ router.route('/')
       }
     })
   })
+
+// GET New Blob Page
+router.get('/new', function(req, res){
+  res.render('blobs/new', {title: 'Add New Blob'})
+})
+
+// route middleware to validate :id
+router.param('id', function(req, res, next, id){
+  // console.log('validating ' + id + ' exists')
+  // find the ID in the database
+  mongoose.model('Blob').findById(id, function(err, blob){
+    // if it isn't found, we are going to respond with 404
+    if (err) {
+      console.log(id + ' was not found')
+      res.status(404)
+      var err = new Error('Not Found')
+      err.status = 404
+      res.format({
+        html: function(){
+          next(err)
+        },
+        json: function(){
+          res.json({message : err.status + ' ' + err})
+        }
+      })
+      // if it is found we continue
+    } else {
+      //uncoment this next line if you want to see every JSON document
+      // response for every GET/PUT/DELETE calls
+      // console.log(blob)
+      // once validation is done save the new item in the req
+      req.id = id
+      // go to the next thing
+      next()
+    }
+  })
+})
+
+router.route('/:id')
